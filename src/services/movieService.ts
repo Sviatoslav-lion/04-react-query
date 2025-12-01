@@ -17,7 +17,7 @@ export interface FetchMoviesParams {
   include_adult?: boolean;
 }
 
-interface TmdbSearchResponse {
+export interface TmdbSearchResponse {
   page: number;
   results: Movie[];
   total_results: number;

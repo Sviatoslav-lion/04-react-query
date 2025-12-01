@@ -8,9 +8,8 @@ import MovieModal from '../MovieModal/MovieModal';
 import type { Movie } from '../../types/movie';
 import { useMoviesQuery } from '../../hooks/useMoviesQuery';
 import styles from './App.module.css';
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 import ReactPaginate from 'react-paginate';
-import css from './App.module.css';
 
 const App: React.FC = () => {
   const [query, setQuery] = useState("");
@@ -51,8 +50,8 @@ const App: React.FC = () => {
               marginPagesDisplayed={1}
               onPageChange={({ selected }) => setPage(selected + 1)}
               forcePage={page - 1}
-              containerClassName={css.pagination}
-              activeClassName={css.active}
+              containerClassName={styles.pagination}
+              activeClassName={styles.active}
               nextLabel="→"
               previousLabel="←"
             />
