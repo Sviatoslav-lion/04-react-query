@@ -6,45 +6,25 @@ import Loader from '../Loader/Loader';
 import ErrorMessage from '../ErrorMessage/ErrorMessage';
 import MovieModal from '../MovieModal/MovieModal';
 import type { Movie } from '../../types/movie';
-import { fetchMovies } from '../../services/movieService';
+import { useMoviesQuery } from '../../hooks/useMoviesQuery';
 import styles from './App.module.css';
 import toast, { Toaster } from 'react-hot-toast';
+import ReactPaginate from 'react-paginate';
+import css from './App.module.css';
 
 const App: React.FC = () => {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const handleSearch = async (query: string) => {
-    // очистити колекцію перед новим пошуком
-    setMovies([]);
-    setError(null);
+  const { data, isLoading, isError } = useMoviesQuery(query, page);
 
-    if (!query.trim()) {
-      // SearchBar вже показує toast при порожньому — дублювання тут не потрібне,
-      // але додамо на всякий випадок:
-      toast.error('Please enter your search query.');
-      return;
-    }
+  const movies = data?.results ?? [];
+  const totalPages = data?.total_pages ?? 0;
 
-    setLoading(true);
-    try {
-      const data = await fetchMovies({ query });
-      if (!data.results || data.results.length === 0) {
-        toast('No movies found for your request.');
-        setMovies([]);
-        setLoading(false);
-        return;
-      }
-      setMovies(data.results);
-    } catch (err) {
-      console.error(err);
-      setError('There was an error, please try again...');
-      toast.error('There was an error, please try again...');
-    } finally {
-      setLoading(false);
-    }
+  const handleSearch = (newQuery: string) => {
+    setQuery(newQuery);
+    setPage(1); // при новому пошуку завжди починаємо з 1 сторінки
   };
 
   const handleSelect = (movie: Movie) => {
@@ -59,12 +39,30 @@ const App: React.FC = () => {
     <div className={styles.app}>
       <Toaster />
       <SearchBar onSubmit={handleSearch} />
-      {loading && <Loader />}
-      {error && <ErrorMessage />}
-      {!loading && !error && movies.length > 0 && (
-        <MovieGrid movies={movies} onSelect={handleSelect} />
+      {isLoading && <Loader />}
+      {isError && <ErrorMessage />}
+      {!isLoading && !isError && movies.length > 0 && (
+        <>
+          <MovieGrid movies={movies} onSelect={handleSelect} />
+          {totalPages > 1 && (
+            <ReactPaginate
+              pageCount={totalPages}
+              pageRangeDisplayed={5}
+              marginPagesDisplayed={1}
+              onPageChange={({ selected }) => setPage(selected + 1)}
+              forcePage={page - 1}
+              containerClassName={css.pagination}
+              activeClassName={css.active}
+              nextLabel="→"
+              previousLabel="←"
+            />
+          )}
+        </>
       )}
-      {selectedMovie && <MovieModal movie={selectedMovie} onClose={handleCloseModal} />}
+
+      {selectedMovie && (
+        <MovieModal movie={selectedMovie} onClose={handleCloseModal} />
+      )}
     </div>
   );
 };
