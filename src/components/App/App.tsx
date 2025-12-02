@@ -10,16 +10,26 @@ import { useMoviesQuery } from '../../hooks/useMoviesQuery';
 import styles from './App.module.css';
 import { Toaster } from 'react-hot-toast';
 import ReactPaginate from 'react-paginate';
+import { useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 const App: React.FC = () => {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const { data, isLoading, isError } = useMoviesQuery(query, page);
+  const { data, isLoading, isError, isSuccess } = useMoviesQuery(query, page);
+
 
   const movies = data?.results ?? [];
   const totalPages = data?.total_pages ?? 0;
+
+  useEffect(() => {
+    if (isSuccess && !isLoading && movies.length === 0) {
+      toast('Нічого не знайдено 🤷‍♂️', {icon: '🔍',});
+      }
+    }, 
+  [isSuccess, movies.length, query]);
 
   const handleSearch = (newQuery: string) => {
     setQuery(newQuery);
